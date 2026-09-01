@@ -33,7 +33,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "./src/plugins/with-cleartext-traffic"
     ],
     "experiments": {
       "typedRoutes": true
