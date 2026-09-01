@@ -1,6 +1,6 @@
 # Offline Task Manager
 
-A React Native task management app built with Expo SDK 57, designed to work fully offline with background sync when connectivity returns. Tasks persist in SQLite locally, and an operation queue handles remote sync with retry logic. The UI stays responsive through optimistic state updates — mutations reflect immediately in the list before the network round-trip completes.
+A React Native task management app built with Expo SDK 52+, designed to work fully offline with background sync when connectivity returns. Tasks persist in SQLite locally, and an operation queue handles remote sync with retry logic. The UI stays responsive through optimistic state updates — mutations reflect immediately in the list before the network round-trip completes.
 
 ## Setup
 
@@ -12,6 +12,8 @@ npm install
 
 ```bash
 # iOS (requires macOS)
+npx expo run:ios
+# Android
 npx expo run:android
 
 # Or via EAS
