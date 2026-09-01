@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Authenticate EAS
+        run: eas login --token ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build APK
+        id: build
+        run: |
+          OUTPUT=$(eas build --platform android --profile preview --non-interactive --wait --json)
+          APK_URL=$(echo "$OUTPUT" | jq -r '.[0].artifacts.buildUrl')
+          echo "apk_url=$APK_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Download APK
+        run: curl -L -o app.apk "${{ steps.build.outputs.apk_url }}"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git tag --sort=-v:refname | head -2 | tail -1 || true)
+          if [ -n "$PREV_TAG" ] && [ "$PREV_TAG" != "${{ github.ref_name }}" ]; then
+            NOTES=$(git log --pretty=format:"- %s" "$PREV_TAG"..HEAD)
+          else
+            NOTES=$(git log --pretty=format:"- %s" HEAD~10..HEAD)
+          fi
+          # Write to file to preserve newlines
+          echo "$NOTES" > /tmp/release-notes.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app.apk
+          body_path: /tmp/release-notes.txt
