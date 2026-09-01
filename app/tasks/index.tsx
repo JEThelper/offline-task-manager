@@ -1,8 +1,9 @@
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { RefreshControl, View, Text, Pressable, StyleSheet } from 'react-native';
 
+import { ConnectivityIndicator } from '@/src/components/connectivity-indicator';
 import { TaskListItem } from '@/src/components/task-list-item';
 import type { PriorityFilter, SortField } from '@/src/domain/task-repository';
 import { useTaskStore } from '@/src/store/task-store';
@@ -29,10 +30,19 @@ export default function TaskListScreen() {
   const toggleTask = useTaskStore((s) => s.toggleTask);
   const setSortBy = useTaskStore((s) => s.setSortBy);
   const setFilterBy = useTaskStore((s) => s.setFilterBy);
+  const flushSync = useTaskStore((s) => s.flushSync);
+
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadTasks();
   }, [loadTasks, sortBy, filterBy]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await flushSync();
+    setRefreshing(false);
+  }, [flushSync]);
 
   const handleToggle = useCallback(
     (id: string) => {
@@ -63,6 +73,8 @@ export default function TaskListScreen() {
 
   return (
     <View style={styles.container}>
+      <ConnectivityIndicator />
+
       <View style={styles.controls}>
         <View style={styles.controlGroup}>
           <Text style={styles.controlLabel}>Sort</Text>
@@ -111,7 +123,12 @@ export default function TaskListScreen() {
           </Text>
         </View>
       ) : (
-        <FlashList data={tasks} renderItem={renderItem} keyExtractor={keyExtractor} />
+        <FlashList
+          data={tasks}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        />
       )}
 
       <Pressable style={styles.fab} onPress={() => router.push('/tasks/new')}>

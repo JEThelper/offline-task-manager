@@ -16,6 +16,7 @@ const syncManager = new SyncQueueManager(taskRepo, syncRepo);
 interface TaskState {
   tasks: Task[];
   loading: boolean;
+  syncing: boolean;
   error: string | null;
   sortBy: SortField | undefined;
   filterBy: PriorityFilter | undefined;
@@ -26,6 +27,7 @@ interface TaskState {
   editTask: (id: string, changes: Partial<TaskInput>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   toggleTask: (id: string) => Promise<void>;
+  flushSync: () => Promise<void>;
   setSortBy: (sort: SortField | undefined) => void;
   setFilterBy: (filter: PriorityFilter | undefined) => void;
 }
@@ -45,6 +47,7 @@ async function detectUnsynced(): Promise<Set<string>> {
 export const useTaskStore = create<TaskState>((set, get) => ({
   tasks: [],
   loading: false,
+  syncing: false,
   error: null,
   sortBy: undefined,
   filterBy: undefined,
@@ -145,6 +148,16 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       await syncManager.handleMutation(saved, 'toggle');
     } catch (e) {
       set({ error: String(e) });
+    }
+  },
+
+  async flushSync() {
+    set({ syncing: true });
+    try {
+      await syncManager.flush();
+    } finally {
+      set({ syncing: false });
+      await get().loadTasks();
     }
   },
 
