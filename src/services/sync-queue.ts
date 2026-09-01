@@ -1,3 +1,4 @@
+import type { EventSubscription } from 'expo-modules-core';
 import { addNetworkStateListener, getNetworkStateAsync } from 'expo-network';
 
 import type { ISyncQueueRepository, SyncOperation } from '../domain/sync-queue-repository';
@@ -10,7 +11,7 @@ export class SyncQueueManager {
   private taskRepo: ITaskRepository;
   private syncRepo: ISyncQueueRepository;
   private flushing = false;
-  private unsubscribe: (() => void) | null = null;
+  private subscription: EventSubscription | null = null;
 
   constructor(taskRepo: ITaskRepository, syncRepo: ISyncQueueRepository) {
     this.taskRepo = taskRepo;
@@ -23,7 +24,7 @@ export class SyncQueueManager {
       await this.flush();
     }
 
-    this.unsubscribe = addNetworkStateListener(async (event) => {
+    this.subscription = addNetworkStateListener(async (event) => {
       if (event.isConnected) {
         await this.flush();
       }
@@ -31,8 +32,8 @@ export class SyncQueueManager {
   }
 
   stopListening(): void {
-    this.unsubscribe?.();
-    this.unsubscribe = null;
+    this.subscription?.remove();
+    this.subscription = null;
   }
 
   async enqueueOnOffline(operation: SyncOperation, payload: string): Promise<void> {
