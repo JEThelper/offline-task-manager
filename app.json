@@ -34,7 +34,7 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "./src/plugins/with-cleartext-traffic"
+      "./with-cleartext-traffic"
     ],
     "experiments": {
       "typedRoutes": true
