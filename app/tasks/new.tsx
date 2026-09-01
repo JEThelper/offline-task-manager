@@ -1,21 +1,23 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { useNavigation, useRouter } from 'expo-router';
+import { useEffect } from 'react';
+
+import { TaskForm } from '@/src/components/task-form';
+import type { TaskInput } from '@/src/domain/task';
+import { useTaskStore } from '@/src/store/task-store';
 
 export default function NewTaskScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>New task form coming soon</Text>
-    </View>
-  );
-}
+  const router = useRouter();
+  const navigation = useNavigation();
+  const addTask = useTaskStore((s) => s.addTask);
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    fontSize: 16,
-    color: '#6b7280',
-  },
-});
+  useEffect(() => {
+    navigation.setOptions({ title: 'New Task' });
+  }, [navigation]);
+
+  async function handleSubmit(input: TaskInput) {
+    await addTask(input);
+    router.back();
+  }
+
+  return <TaskForm onSubmit={handleSubmit} submitLabel="Create Task" />;
+}
