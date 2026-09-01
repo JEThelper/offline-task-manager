@@ -23,11 +23,10 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      - name: Authenticate EAS
-        run: eas login --token ${{ secrets.EXPO_TOKEN }}
-
       - name: Build APK
         id: build
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
           OUTPUT=$(eas build --platform android --profile preview --non-interactive --wait --json)
           APK_URL=$(echo "$OUTPUT" | jq -r '.[0].artifacts.buildUrl')
