@@ -38,6 +38,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "52fc12be-f0a0-4ef5-8dd9-25c10971d4d2"
+      }
+    },
+    "owner": "justice-thinker"
   }
 }
