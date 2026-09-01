@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
 
+import { SyncStatusBadge } from '@/src/components/sync-status-badge';
 import { useTaskStore } from '@/src/store/task-store';
 
 function formatDueDate(iso: string): string {
@@ -34,6 +35,7 @@ export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const tasks = useTaskStore((s) => s.tasks);
+  const pendingSyncIds = useTaskStore((s) => s.pendingSyncIds);
   const toggleTask = useTaskStore((s) => s.toggleTask);
   const deleteTask = useTaskStore((s) => s.deleteTask);
 
@@ -65,8 +67,11 @@ export default function TaskDetailScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Text style={styles.title}>{task.title}</Text>
-        <View style={[styles.badge, { backgroundColor: PRIORITY_COLORS[task.priority] }]}>
-          <Text style={styles.badgeText}>{task.priority}</Text>
+        <View style={styles.headerBadges}>
+          <View style={[styles.badge, { backgroundColor: PRIORITY_COLORS[task.priority] }]}>
+            <Text style={styles.badgeText}>{task.priority}</Text>
+          </View>
+          <SyncStatusBadge isPending={pendingSyncIds.has(task.id)} />
         </View>
       </View>
 
@@ -140,6 +145,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 12,
+  },
+  headerBadges: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   title: {
     flex: 1,

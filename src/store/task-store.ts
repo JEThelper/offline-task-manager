@@ -21,6 +21,7 @@ interface TaskState {
   sortBy: SortField | undefined;
   filterBy: PriorityFilter | undefined;
   unsyncedIds: Set<string>;
+  pendingSyncIds: Set<string>;
 
   loadTasks: () => Promise<void>;
   addTask: (input: TaskInput) => Promise<void>;
@@ -28,20 +29,26 @@ interface TaskState {
   deleteTask: (id: string) => Promise<void>;
   toggleTask: (id: string) => Promise<void>;
   flushSync: () => Promise<void>;
+  refreshSyncStatus: () => Promise<void>;
   setSortBy: (sort: SortField | undefined) => void;
   setFilterBy: (filter: PriorityFilter | undefined) => void;
 }
 
-async function detectUnsynced(): Promise<Set<string>> {
+async function detectSyncStatus(): Promise<{
+  unsyncedIds: Set<string>;
+  pendingSyncIds: Set<string>;
+}> {
   const queued = await syncRepo.getAll();
-  const ids = new Set<string>();
+  const unsyncedIds = new Set<string>();
+  const pendingSyncIds = new Set<string>();
   for (const entry of queued) {
+    const task = JSON.parse(entry.payload) as Task;
+    pendingSyncIds.add(task.id);
     if (entry.attempts >= MAX_SYNC_ATTEMPTS) {
-      const task = JSON.parse(entry.payload) as Task;
-      ids.add(task.id);
+      unsyncedIds.add(task.id);
     }
   }
-  return ids;
+  return { unsyncedIds, pendingSyncIds };
 }
 
 export const useTaskStore = create<TaskState>((set, get) => ({
@@ -52,14 +59,15 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   sortBy: undefined,
   filterBy: undefined,
   unsyncedIds: new Set(),
+  pendingSyncIds: new Set(),
 
   async loadTasks() {
     set({ loading: true, error: null });
     try {
       const { sortBy, filterBy } = get();
       const tasks = await taskRepo.getAll(sortBy, filterBy);
-      const unsyncedIds = await detectUnsynced();
-      set({ tasks, unsyncedIds, loading: false });
+      const { unsyncedIds, pendingSyncIds } = await detectSyncStatus();
+      set({ tasks, unsyncedIds, pendingSyncIds, loading: false });
     } catch (e) {
       set({ error: String(e), loading: false });
     }
@@ -85,6 +93,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         tasks: state.tasks.map((t) => (t.id === optimistic.id ? saved : t)),
       }));
       await syncManager.handleMutation(saved, 'create');
+      await get().refreshSyncStatus();
     } catch (e) {
       set({ error: String(e) });
     }
@@ -106,6 +115,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         tasks: state.tasks.map((t) => (t.id === id ? saved : t)),
       }));
       await syncManager.handleMutation(saved, 'update');
+      await get().refreshSyncStatus();
     } catch (e) {
       set({ error: String(e) });
     }
@@ -121,6 +131,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       if (previous) {
         await syncManager.handleMutation(previous, 'delete');
       }
+      await get().refreshSyncStatus();
     } catch (e) {
       set({ error: String(e) });
     }
@@ -146,6 +157,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         tasks: state.tasks.map((t) => (t.id === id ? saved : t)),
       }));
       await syncManager.handleMutation(saved, 'toggle');
+      await get().refreshSyncStatus();
     } catch (e) {
       set({ error: String(e) });
     }
@@ -159,6 +171,11 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       set({ syncing: false });
       await get().loadTasks();
     }
+  },
+
+  async refreshSyncStatus() {
+    const { unsyncedIds, pendingSyncIds } = await detectSyncStatus();
+    set({ unsyncedIds, pendingSyncIds });
   },
 
   setSortBy(sort) {

@@ -55,6 +55,21 @@ npm run lint
 | 500+ tasks performance | Implemented — FlashList v2, indexed sort/filter columns |
 | Native date picker | Implemented — @react-native-community/datetimepicker |
 | Confirmation before delete | Implemented — Alert.alert with destructive action |
+| Per-task sync status badge | Implemented — green checkmark (synced) or amber dot (pending) |
+
+## Testing Offline Behavior
+
+To manually verify the offline sync and status indicators:
+
+1. Enable Airplane Mode on your device
+2. Create a new task — it appears in the list immediately (optimistic UI)
+3. Observe the amber dot badge next to the task, indicating it's pending sync
+4. Edit, toggle, or delete the task — the badge stays amber
+5. Disable Airplane Mode
+6. Within a few seconds, the amber dots transition to green checkmarks as the queue flushes
+7. Pull down to refresh — this forces an immediate sync flush and reloads tasks
+
+This turns an invisible background mechanism into something you can verify hands-on in under a minute without reading any code.
 
 ## Architecture
 
