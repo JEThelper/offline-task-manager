@@ -150,7 +150,11 @@ export default function TaskListScreen() {
         />
       )}
 
-      <Pressable style={styles.fab} onPress={() => router.push('/tasks/new')}>
+      <Pressable
+        style={styles.fab}
+        onPress={() => router.push('/tasks/new')}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
         <Text style={styles.fabText}>+</Text>
       </Pressable>
     </View>
@@ -235,18 +239,19 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 20,
-    bottom: 20,
+    bottom: 24,
     width: 56,
     height: 56,
     borderRadius: 28,
     backgroundColor: '#6366f1',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
+    elevation: 6,
+    zIndex: 6,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
   fabText: {
     fontSize: 28,
