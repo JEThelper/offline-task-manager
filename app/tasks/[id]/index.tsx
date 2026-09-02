@@ -1,5 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Alert, Pressable, ScrollView, Text, View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SyncStatusBadge } from '@/src/components/sync-status-badge';
 import { useTaskStore } from '@/src/store/task-store';
@@ -34,20 +35,13 @@ const PRIORITY_COLORS: Record<string, string> = {
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const tasks = useTaskStore((s) => s.tasks);
   const pendingSyncIds = useTaskStore((s) => s.pendingSyncIds);
   const toggleTask = useTaskStore((s) => s.toggleTask);
   const deleteTask = useTaskStore((s) => s.deleteTask);
 
   const task = tasks.find((t) => t.id === id);
-
-  if (!task) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.notFound}>Task not found</Text>
-      </View>
-    );
-  }
 
   function handleDelete() {
     Alert.alert('Delete task', `Are you sure you want to delete "${task!.title}"?`, [
@@ -64,61 +58,78 @@ export default function TaskDetailScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{task.title}</Text>
-        <View style={styles.headerBadges}>
-          <View style={[styles.badge, { backgroundColor: PRIORITY_COLORS[task.priority] }]}>
-            <Text style={styles.badgeText}>{task.priority}</Text>
-          </View>
-          <SyncStatusBadge isPending={pendingSyncIds.has(task.id)} />
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Text style={styles.backText}>← Back</Text>
+        </Pressable>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {task?.title ?? 'Task'}
+        </Text>
+      </View>
+
+      {!task ? (
+        <View style={styles.center}>
+          <Text style={styles.notFound}>Task not found</Text>
         </View>
-      </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{task.title}</Text>
+            <View style={styles.headerBadges}>
+              <View style={[styles.badge, { backgroundColor: PRIORITY_COLORS[task.priority] }]}>
+                <Text style={styles.badgeText}>{task.priority}</Text>
+              </View>
+              <SyncStatusBadge isPending={pendingSyncIds.has(task.id)} />
+            </View>
+          </View>
 
-      {task.description ? <Text style={styles.description}>{task.description}</Text> : null}
+          {task.description ? <Text style={styles.description}>{task.description}</Text> : null}
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Due Date</Text>
-        <Text style={styles.value}>{formatDueDate(task.dueDate)}</Text>
-      </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Due Date</Text>
+            <Text style={styles.value}>{formatDueDate(task.dueDate)}</Text>
+          </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Status</Text>
-        <Text style={styles.value}>{task.completed ? 'Completed' : 'Pending'}</Text>
-      </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Status</Text>
+            <Text style={styles.value}>{task.completed ? 'Completed' : 'Pending'}</Text>
+          </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Created</Text>
-        <Text style={styles.value}>{formatTimestamp(task.createdAt)}</Text>
-      </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Created</Text>
+            <Text style={styles.value}>{formatTimestamp(task.createdAt)}</Text>
+          </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Updated</Text>
-        <Text style={styles.value}>{formatTimestamp(task.updatedAt)}</Text>
-      </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Updated</Text>
+            <Text style={styles.value}>{formatTimestamp(task.updatedAt)}</Text>
+          </View>
 
-      <View style={styles.actions}>
-        <Pressable
-          style={[styles.button, styles.toggleButton]}
-          onPress={() => toggleTask(task!.id)}
-        >
-          <Text style={styles.buttonText}>
-            {task.completed ? 'Mark Incomplete' : 'Mark Complete'}
-          </Text>
-        </Pressable>
+          <View style={styles.actions}>
+            <Pressable
+              style={[styles.button, styles.toggleButton]}
+              onPress={() => toggleTask(task.id)}
+            >
+              <Text style={styles.buttonText}>
+                {task.completed ? 'Mark Incomplete' : 'Mark Complete'}
+              </Text>
+            </Pressable>
 
-        <Pressable
-          style={[styles.button, styles.editButton]}
-          onPress={() => router.push(`/tasks/${task!.id}/edit`)}
-        >
-          <Text style={[styles.buttonText, styles.editButtonText]}>Edit</Text>
-        </Pressable>
+            <Pressable
+              style={[styles.button, styles.editButton]}
+              onPress={() => router.push(`/tasks/${task.id}/edit`)}
+            >
+              <Text style={[styles.buttonText, styles.editButtonText]}>Edit</Text>
+            </Pressable>
 
-        <Pressable style={[styles.button, styles.deleteButton]} onPress={handleDelete}>
-          <Text style={[styles.buttonText, styles.deleteButtonText]}>Delete</Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+            <Pressable style={[styles.button, styles.deleteButton]} onPress={handleDelete}>
+              <Text style={[styles.buttonText, styles.deleteButtonText]}>Delete</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      )}
+    </View>
   );
 }
 
@@ -126,6 +137,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f9fafb',
+  },
+  header: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  backButton: {
+    paddingVertical: 4,
+    paddingRight: 8,
+  },
+  backText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
   },
   content: {
     padding: 16,
@@ -140,7 +174,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6b7280',
   },
-  header: {
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',

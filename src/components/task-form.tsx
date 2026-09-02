@@ -1,6 +1,6 @@
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Platform } from 'react-native';
+import { ScrollView, View, Text, TextInput, Pressable, StyleSheet, Platform } from 'react-native';
 
 import type { TaskInput } from '../domain/task';
 import { taskInputSchema } from '../domain/task';
@@ -75,7 +75,7 @@ export function TaskForm({ initialValues, onSubmit, submitLabel }: TaskFormProps
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.field}>
         <Text style={styles.label}>Title</Text>
         <TextInput
@@ -151,12 +151,15 @@ export function TaskForm({ initialValues, onSubmit, submitLabel }: TaskFormProps
       >
         <Text style={styles.submitText}>{submitting ? 'Saving…' : submitLabel}</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  content: {
     padding: 16,
     gap: 16,
   },

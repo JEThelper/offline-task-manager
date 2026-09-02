@@ -2,6 +2,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, View, Text, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ConnectivityIndicator } from '@/src/components/connectivity-indicator';
 import { TaskListItem } from '@/src/components/task-list-item';
@@ -22,6 +23,7 @@ const FILTER_OPTIONS: { label: string; value: PriorityFilter | undefined }[] = [
 
 export default function TaskListScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const tasks = useTaskStore((s) => s.tasks);
   const loading = useTaskStore((s) => s.loading);
   const sortBy = useTaskStore((s) => s.sortBy);
@@ -86,6 +88,10 @@ export default function TaskListScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <Text style={styles.headerTitle}>Offline Task Manager</Text>
+      </View>
+
       <ConnectivityIndicator />
 
       <View style={styles.controls}>
@@ -215,6 +221,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9ca3af',
     textAlign: 'center',
+  },
+  header: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#fff',
   },
   fab: {
     position: 'absolute',
