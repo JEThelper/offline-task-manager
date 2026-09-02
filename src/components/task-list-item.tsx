@@ -14,6 +14,7 @@ const PRIORITY_COLORS: Record<Task['priority'], string> = {
 interface TaskListItemProps {
   task: Task;
   onToggle: (id: string) => void;
+  onPress: (id: string) => void;
   isPendingSync: boolean;
 }
 
@@ -36,7 +37,7 @@ function formatDueDate(iso: string): string {
   return `${months[date.getMonth()]} ${date.getDate()}`;
 }
 
-function TaskListItemInner({ task, onToggle, isPendingSync }: TaskListItemProps) {
+function TaskListItemInner({ task, onToggle, onPress, isPendingSync }: TaskListItemProps) {
   return (
     <View style={styles.row}>
       <Pressable
@@ -47,7 +48,7 @@ function TaskListItemInner({ task, onToggle, isPendingSync }: TaskListItemProps)
         {task.completed && <Text style={styles.checkmark}>✓</Text>}
       </Pressable>
 
-      <View style={styles.content}>
+      <Pressable style={styles.content} onPress={() => onPress(task.id)}>
         <Text style={[styles.title, task.completed && styles.titleCompleted]} numberOfLines={1}>
           {task.title}
         </Text>
@@ -58,7 +59,7 @@ function TaskListItemInner({ task, onToggle, isPendingSync }: TaskListItemProps)
           <Text style={styles.dueDate}>{formatDueDate(task.dueDate)}</Text>
           <SyncStatusBadge isPending={isPendingSync} />
         </View>
-      </View>
+      </Pressable>
     </View>
   );
 }
