@@ -8,14 +8,10 @@
       "distribution": "internal"
     },
     "preview": {
+      "distribution": "internal",
       "android": {
-        "buildType": "apk",
-        "gradleProperties": {
-          "enableProguardInReleaseBuilds": "true",
-          "enableHermes": "true"
-        }
-      },
-      "distribution": "internal"
+        "buildType": "apk"
+      }
     },
     "production": {}
   }
