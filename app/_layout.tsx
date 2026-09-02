@@ -1,8 +1,17 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { useTaskStore } from '@/src/store/task-store';
+
 export default function RootLayout() {
+  const startSync = useTaskStore((s) => s.startSync);
+
+  useEffect(() => {
+    startSync();
+  }, [startSync]);
+
   return (
     <SafeAreaProvider>
       <Stack
