@@ -1,17 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { Redirect } from 'expo-router';
 
 export default function IndexScreen() {
-  return (
-    <View style={styles.container}>
-      <Text>Offline Task Manager</Text>
-    </View>
-  );
+  return <Redirect href="/tasks" />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
