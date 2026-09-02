@@ -1,6 +1,6 @@
-import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Pressable, Text, View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TaskForm } from '@/src/components/task-form';
 import type { TaskInput } from '@/src/domain/task';
@@ -9,15 +9,11 @@ import { useTaskStore } from '@/src/store/task-store';
 export default function EditTaskScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const tasks = useTaskStore((s) => s.tasks);
   const editTask = useTaskStore((s) => s.editTask);
 
   const task = tasks.find((t) => t.id === id);
-
-  useEffect(() => {
-    navigation.setOptions({ title: task ? 'Edit Task' : 'Task' });
-  }, [navigation, task]);
 
   async function handleSubmit(input: TaskInput) {
     if (!id) return;
@@ -25,29 +21,63 @@ export default function EditTaskScreen() {
     router.back();
   }
 
-  if (!task) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.notFound}>Task not found</Text>
-      </View>
-    );
-  }
-
   return (
-    <TaskForm
-      initialValues={{
-        title: task.title,
-        description: task.description,
-        priority: task.priority,
-        dueDate: task.dueDate,
-      }}
-      onSubmit={handleSubmit}
-      submitLabel="Save Changes"
-    />
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Text style={styles.backText}>← Back</Text>
+        </Pressable>
+        <Text style={styles.headerTitle}>{task ? 'Edit Task' : 'Task'}</Text>
+      </View>
+
+      {!task ? (
+        <View style={styles.center}>
+          <Text style={styles.notFound}>Task not found</Text>
+        </View>
+      ) : (
+        <TaskForm
+          initialValues={{
+            title: task.title,
+            description: task.description,
+            priority: task.priority,
+            dueDate: task.dueDate,
+          }}
+          onSubmit={handleSubmit}
+          submitLabel="Save Changes"
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  header: {
+    backgroundColor: '#6366f1',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  backButton: {
+    paddingVertical: 4,
+    paddingRight: 8,
+  },
+  backText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#fff',
+  },
   center: {
     flex: 1,
     alignItems: 'center',

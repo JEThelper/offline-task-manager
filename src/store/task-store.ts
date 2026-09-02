@@ -30,6 +30,7 @@ interface TaskState {
   toggleTask: (id: string) => Promise<void>;
   flushSync: () => Promise<void>;
   refreshSyncStatus: () => Promise<void>;
+  startSync: () => Promise<void>;
   setSortBy: (sort: SortField | undefined) => void;
   setFilterBy: (filter: PriorityFilter | undefined) => void;
 }
@@ -176,6 +177,10 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   async refreshSyncStatus() {
     const { unsyncedIds, pendingSyncIds } = await detectSyncStatus();
     set({ unsyncedIds, pendingSyncIds });
+  },
+
+  async startSync() {
+    await syncManager.startListening();
   },
 
   setSortBy(sort) {
