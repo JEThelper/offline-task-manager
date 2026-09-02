@@ -52,15 +52,23 @@ export default function TaskListScreen() {
     [toggleTask],
   );
 
+  const handlePress = useCallback(
+    (id: string) => {
+      router.push(`/tasks/${id}`);
+    },
+    [router],
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: (typeof tasks)[number] }) => (
       <TaskListItem
         task={item}
         onToggle={handleToggle}
+        onPress={handlePress}
         isPendingSync={pendingSyncIds.has(item.id)}
       />
     ),
-    [handleToggle, pendingSyncIds],
+    [handleToggle, handlePress, pendingSyncIds],
   );
 
   const keyExtractor = useCallback((item: (typeof tasks)[number]) => item.id, []);
